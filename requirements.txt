@@ -3,4 +3,4 @@ pdfplumber
 python-docx
 scikit-learn
 google-genai
-gunicorn
+gunicornpython-dotenv
