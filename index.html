@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html><acronym title=""></acronym>
+    <head>
+        <title>AI Resume Analyzer</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <body>
+
+        <div class="container">
+
+            <h1> AI Resume Analyzer With Skill Gap Detection</h1>
+
+            <form method="POST" enctype="multipart/form-data">
+
+                <textarea name="job_description"
+                placeholder="paste job description here....."
+                required></textarea>
+
+                <input type="file" name="resume" accept=".pdf,.docx" required>
+
+                <button type="submit">Analyze Resume</button>
+
+            </form>
+
+        </div>
+
+        {% if result %}
+
+        <div class="card">
+
+            <h2>ATS MATCH SCORE:{{result.score}}</h2>
+
+            <h3>Resume skills</h3>
+            <p>{{result.resume_skills}}</p>
+
+            <h3>job description skills</h3>
+            <p>{{result.jd_skills}}</p>
+
+            <h3>missing skills</h3>
+            <p>{{result.missing_skills}}</p>
+
+            <h3>Recommended Job Roles</h3>
+
+            <ol>
+                {% for job in recommended_jobs %}
+                    <li>{{ job }}</li>
+                {% endfor %}
+            </ol>
+
+            <h3>Best Career Path</h3>
+            <p><strong>{{ best_career }}</strong></p>
+
+        </div>
+
+        {% endif %}
+        
+    <!-- Chatbot Button -->
+<button id="chatbot-button" onclick="toggleChat()">
+    💬
+</button>
+
+<!-- Chatbot Window -->
+<div id="chatbot">
+    
+    <div class="chat-header">
+        <span>🤖 AI Resume Assistant</span>
+        <button onclick="toggleChat()">×</button>
+    </div>
+
+    <div id="chat-messages">
+        <div class="bot-message">
+            👋 Hi! I'm your AI Resume Assistant.<br><br>
+            Ask me about ATS scores, resume improvement,
+            missing skills, jobs, interviews or career guidance.
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input 
+            type="text" 
+            id="chat-input"
+            placeholder="Ask me anything..."
+            onkeypress="handleEnter(event)"
+        >
+
+        <button onclick="sendMessage()">
+            ➤
+        </button>
+    </div>
+
+</div>
+
+<script>
+
+function toggleChat() {
+
+    const chatbot = document.getElementById("chatbot");
+
+    if (chatbot.style.display === "flex") {
+        chatbot.style.display = "none";
+    } else {
+        chatbot.style.display = "flex";
+    }
+}
+
+
+function handleEnter(event) {
+
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+}
+
+
+async function sendMessage() {
+
+    const input = document.getElementById("chat-input");
+    const message = input.value.trim();
+
+    if (message === "") {
+        return;
+    }
+
+    const messages = document.getElementById("chat-messages");
+
+    // User message
+    messages.innerHTML += `
+        <div class="user-message">
+            ${message}
+        </div>
+    `;
+
+    input.value = "";
+
+    // Loading message
+    const loading = document.createElement("div");
+    loading.className = "bot-message";
+    loading.innerHTML = "🤔 Thinking...";
+    messages.appendChild(loading);
+
+    messages.scrollTop = messages.scrollHeight;
+
+    try {
+
+        const response = await fetch("/chat", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message
+            })
+
+        });
+
+        const data = await response.json();
+
+        loading.innerHTML = data.reply.replace(/\n/g, "<br>");
+
+    } catch (error) {
+
+        loading.innerHTML =
+            "❌ Sorry, something went wrong. Please try again.";
+
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+}
+
+</script>
+    </body>
+</html>
